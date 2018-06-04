@@ -2,9 +2,7 @@ public class Variables {
 
     public static int playbacks_offset = 6;
 
-    public String[] playbacks = {
-            "89", "\\",
-            "88", "Z",
+    public static String[] playbacks = {
             "64", "X",
             "65", "C",
             "66", "V",
@@ -12,10 +10,12 @@ public class Variables {
             "68", "N",
             "69", "M",
             "70", ",",
-            "71", "."
+            "71", ".",
+            "89", "\\",
+            "88", "Z"
     };
     public static int stops_offset = 0;
-    public String[] stops = {
+    public static String[] stops = {
             "0", "D",
             "1", "F",
             "2", "G",
@@ -26,7 +26,7 @@ public class Variables {
             "7", ";"
     };
     public static int taps_offset = 2;
-    public String[] taps = {
+    public static  String[] taps = {
             "8", "3",
             "9", "4",
             "10", "5",
@@ -35,6 +35,18 @@ public class Variables {
             "13", "8",
             "14", "9",
             "15", "0"
+    };
+
+    public static int macros_offset = 4;
+    public static String[] macros = {
+            "56", "Q", "TRUE",
+            "57", "W", "TRUE",
+            "58", "E", "TRUE",
+            "59", "R", "TRUE",
+            "60", "T", "TRUE",
+            "61", "Y", "TRUE",
+            "62", "U", "TRUE",
+            "63", "I", "TRUE"
     };
     public static int OFF = 0;
     public static int GREEN = 1;

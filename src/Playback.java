@@ -1,6 +1,13 @@
 public class Playback extends Entity {
 
-    public Playback(int cc) {
+    private CharSequence virtualKey;
+
+    public Playback(int cc, CharSequence virtualKey) {
         super(cc);
+        this.virtualKey = virtualKey;
+    }
+
+    public CharSequence getVirtualKey() {
+        return virtualKey;
     }
 }
