@@ -1,13 +1,22 @@
+import com.confusionists.mjdjApi.midi.ShortMessageWrapper;
+
 import java.awt.*;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+
 import static java.awt.event.KeyEvent.*;
+import static java.lang.Math.abs;
+import static java.lang.Math.getExponent;
 
 public class Keyboard {
 
     private Robot robot;
+    double controlChangePixelRatio;
 
 
     public Keyboard() throws AWTException {
         this.robot = new Robot();
+        controlChangePixelRatio = (double)abs(Variables.faders_lower_position-Variables.faders_higher_position) / 127.0;
     }
 
     public Keyboard(Robot robot) {
@@ -138,6 +147,21 @@ public class Keyboard {
         robot.keyPress(keyCodes[offset]);
         doType(keyCodes, offset + 1, length - 1);
         robot.keyRelease(keyCodes[offset]);
+    }
+
+    public int moveFader(int x, int preY, ShortMessageWrapper shortMessageWrapper, int lastFaderCC){
+        int newY = 0;
+
+        if(lastFaderCC!=shortMessageWrapper.getData1()){
+            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+        }
+        newY = Variables.faders_lower_position - (int)(shortMessageWrapper.getData2()*controlChangePixelRatio);
+        robot.mouseMove(x, preY);
+        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        robot.mouseMove(x, newY);
+
+
+        return newY;
     }
 
 }

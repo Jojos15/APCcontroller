@@ -48,6 +48,38 @@ public class Variables {
             "62", "u", "TRUE",
             "63", "i", "TRUE"
     };
+    public static int faders_lower_position = 685; //  1366x768
+    public static int faders_higher_position = 590; //
+//    public static int faders_lower_position = 816; // 1600x900
+//    public static int faders_higher_position = 725; //
+    public static int faders_offset = 2;
+    public static int fadersX[] = {  //1366x768
+            48, 321,
+            49, 418,
+            50, 515,
+            51, 612,
+            52, 709,
+            53, 806,
+            54, 903,
+            55, 1000,
+            56, 20,
+            54, 127,
+            55, 224
+    };
+    /*public static int fadersX[] = { //1600x900
+            48, 380,
+            49, 500,
+            50, 620,
+            51, 740,
+            52, 860,
+            53, 980,
+            54, 1000,
+            55, 1120,
+            56, 20,
+            54, 140,
+            55, 260
+    };
+*/
     public static int OFF = 0;
     public static int GREEN = 1;
     public static int GREEN_FLASH = 2;
