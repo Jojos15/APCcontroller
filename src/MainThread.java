@@ -3,8 +3,10 @@ import com.confusionists.mjdjApi.midi.ShortMessageWrapper;
 import com.confusionists.mjdjApi.morph.DeviceNotFoundException;
 
 import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MidiMessage;
 import javax.sound.midi.ShortMessage;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.util.ArrayList;
 
 public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
@@ -17,7 +19,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
     private ArrayList<Integer> macroToRelease = new ArrayList<>();
     private int lastFaderCC = 0;
     private boolean switchOn = false;
-
+    private int[] lights = new int[98];
 
     @Override
     public String getName() {
@@ -53,11 +55,13 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
         }
         for(int i=0; i<98; i++){
             try {
+                lights[i] = 0;
                 getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i, 0)));
             } catch (InvalidMidiDataException e) {
                 e.printStackTrace();
             }
         }
+
 
         /*try { WOOOOOOOORKS!!!!!!!!!
             MessageWrapper wrapper = MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, 64, 127));
@@ -66,6 +70,23 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
             e.printStackTrace();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
+        }*/
+
+        /*try {
+            Robot robot = new Robot();
+            robot.mouseMove(0,0);
+            BufferedImage initCapture = robot.createScreenCapture(new Rectangle(1366,768));
+            *//*JFrame frame = new JFrame();
+            frame.getContentPane().setLayout(new FlowLayout());
+            frame.getContentPane().add(new JLabel(new ImageIcon(initCapture)));
+            frame.pack();
+            frame.setVisible(true);
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // if you want the X button to close the app*//*
+
+
+
+        } catch (AWTException e) {
+            e.printStackTrace();
         }*/
     }
 
@@ -205,9 +226,20 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
         if (status) {
             messageWrapper.alterData2(colorOn);
             getService().send(messageWrapper);
+            lights[messageWrapper.getData1()] = colorOn;
         } else {
             messageWrapper.alterData2(colorOff);
             getService().send(messageWrapper);
+            lights[messageWrapper.getData1()] = colorOff;
         }
+    }
+
+    public void writeLightsToFile() throws IOException {
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("lights.txt"));
+        for(int i=0;i<98;i++){
+            bufferedWriter.write(lights[i] +"");
+            bufferedWriter.newLine();
+        }
+        bufferedWriter.close();
     }
 }
