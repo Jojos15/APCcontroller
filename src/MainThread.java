@@ -53,7 +53,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                 faders.add(new Fader(Variables.fadersX[i], Variables.fadersX[i + 1], Variables.faders_lower_position));
             }
         }
-        for(int i=0; i<98; i++){
+        for (int i = 0; i < 98; i++) {
             try {
                 lights[i] = 0;
                 getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i, 0)));
@@ -62,7 +62,11 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
             }
         }
 
-
+        try {
+            writeLightsToFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         /*try { WOOOOOOOORKS!!!!!!!!!
             MessageWrapper wrapper = MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, 64, 127));
             process(wrapper, "");
@@ -154,6 +158,8 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                 } else {
                     setLed(false, shortMessageWrapper, Variables.GREEN, Variables.OFF);
                 }
+            } else if (shortMessageWrapper.getData1() == 87) {
+                writeLightsToFile();
             } else {
                 //TODO: ONLY FOR MY APC
                 int position = 9;
@@ -189,15 +195,13 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
             }
         } else if (shortMessageWrapper.isControlChange()) {
             Keyboard keyboard = new Keyboard();
-            if(switchOn&&(shortMessageWrapper.getData1()==54||shortMessageWrapper.getData1()==55)){
-                if(shortMessageWrapper.getData1()==54){
+            if (switchOn && (shortMessageWrapper.getData1() == 54 || shortMessageWrapper.getData1() == 55)) {
+                if (shortMessageWrapper.getData1() == 54) {
                     faders.get(9).setPreY(keyboard.moveFader(faders.get(9).getX(), faders.get(9).getPreY(), shortMessageWrapper, lastFaderCC));
-                }
-                else{
+                } else {
                     faders.get(10).setPreY(keyboard.moveFader(faders.get(10).getX(), faders.get(10).getPreY(), shortMessageWrapper, lastFaderCC));
                 }
-            }
-            else{
+            } else {
                 int position = (shortMessageWrapper.getData1() + Variables.faders_offset) % 10;
                 faders.get(position).setPreY(keyboard.moveFader(faders.get(position).getX(), faders.get(position).getPreY(), shortMessageWrapper, lastFaderCC));
             }
@@ -235,11 +239,10 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
     }
 
     public void writeLightsToFile() throws IOException {
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("lights.txt"));
-        for(int i=0;i<98;i++){
-            bufferedWriter.write(lights[i] +"");
-            bufferedWriter.newLine();
+        FileOutputStream fileOutputStream = new FileOutputStream("lights.txt");
+        for (int i = 0; i < 98; i++) {
+            fileOutputStream.write(lights[i]);
         }
-        bufferedWriter.close();
+        fileOutputStream.close();
     }
 }
