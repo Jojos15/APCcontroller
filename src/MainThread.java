@@ -148,6 +148,9 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                         messageWrapper1.alterData1(stops.get(position).getCc());
                         setLed(stops.get(position).isOn(), messageWrapper1, 0, Variables.OFF);
                     } else stops.get(position).setOn(true);
+                } else if (shortMessageWrapper.getData1() == 82) {
+                    writeLightsToFile();
+                    getService().log("Should be writen to lights txt");
                 }
             } else if (shortMessageWrapper.getData1() == 98) {
                 switchOn = !switchOn;
@@ -158,8 +161,6 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                 } else {
                     setLed(false, shortMessageWrapper, Variables.GREEN, Variables.OFF);
                 }
-            } else if (shortMessageWrapper.getData1() == 87) {
-                writeLightsToFile();
             } else {
                 //TODO: ONLY FOR MY APC
                 int position = 9;

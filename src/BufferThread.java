@@ -2,6 +2,8 @@ import com.confusionists.mjdjApi.midi.MessageWrapper;
 import com.confusionists.mjdjApi.midi.ShortMessageWrapper;
 import com.confusionists.mjdjApi.morph.DeviceNotFoundException;
 
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.ShortMessage;
 import java.io.*;
 import java.util.ArrayList;
 
@@ -9,6 +11,7 @@ public class BufferThread extends com.confusionists.mjdjApi.morph.AbstractMorph 
 
     private boolean bufferModeOn = false;
     private ArrayList<Integer> bufferedCC = new ArrayList<>();
+    private boolean[] ledsState = new boolean[98];
 
     private ArrayList<MessageWrapper> bufferedMessages = new ArrayList<>();
 
@@ -19,10 +22,8 @@ public class BufferThread extends com.confusionists.mjdjApi.morph.AbstractMorph 
 
     @Override
     public void init() throws DeviceNotFoundException {
-        try {
-            readLightsFromFile();
-        } catch (IOException e) {
-            e.printStackTrace();
+        for (int i = 0; i < 98; i++) {
+            ledsState[i] = false;
         }
     }
 
@@ -30,17 +31,32 @@ public class BufferThread extends com.confusionists.mjdjApi.morph.AbstractMorph 
     public boolean process(MessageWrapper messageWrapper, String s) throws Throwable {
         ShortMessageWrapper shortMessageWrapper = messageWrapper.getAsShortMessageWrapper();
         if (shortMessageWrapper.isNoteOn()) {
-            if(bufferModeOn){
-                bufferedCC.add(shortMessageWrapper.getData1());
-            }
-            if (shortMessageWrapper.getData1() == 87) {
-                if(!bufferModeOn) {
+            if (shortMessageWrapper.getData1() == 82) {
+                if (!bufferModeOn) {
+                    resetLeds(true);
+                    bufferLeds();
                     bufferModeOn = true;
                     return false;
+                } else {
+                    resetLeds(false);
+                    bufferModeOn = false;
                 }
-                else{
-
+            } else if (shortMessageWrapper.getData1() == 83 && bufferedCC.size() != 0) {
+                bufferModeOn = false;
+                flushBuffer();
+                for (int i = 0; i < 98; i++) {
+                    ledsState[i] = false;
                 }
+                return true;
+            } else if (bufferModeOn) {
+                bufferedCC.add(shortMessageWrapper.getData1());
+                ledsState[shortMessageWrapper.getData1()] = !ledsState[shortMessageWrapper.getData1()];
+                ShortMessageWrapper messageToSent = shortMessageWrapper;
+                if(ledsState[shortMessageWrapper.getData1()]){
+                    messageToSent.alterData2(Variables.YELLOW_FLASH);
+                }
+                else messageToSent.alterData2(Variables.OFF);
+                getService().send(shortMessageWrapper);
             }
         }
         return bufferModeOn;
@@ -61,11 +77,38 @@ public class BufferThread extends com.confusionists.mjdjApi.morph.AbstractMorph 
 
     }
 
-    private void readLightsFromFile() throws IOException {
+    private void resetLeds(boolean buffer) throws IOException, InvalidMidiDataException {
         FileInputStream fileInputStream = new FileInputStream("lights.txt");
         for (int i = 0; i < 98; i++) {
-            int s = fileInputStream.read();
-            getService().log(s + "");
+            int s = 0;
+            if (!buffer) {
+                s = fileInputStream.read();
+                getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i, 0)));
+            }
+            getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i, s)));
         }
+        fileInputStream.close();
+    }
+
+    private void bufferLeds() throws InvalidMidiDataException {
+        for(int i=0;i<98;i++){
+            MessageWrapper message;
+            int data2 = Variables.OFF;
+            if (ledsState[i]) data2 = Variables.YELLOW_FLASH;
+            message = MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i, data2));
+            getService().send(message);
+        }
+    }
+
+    private void flushBuffer() throws Throwable {
+        resetLeds(false);
+        for (Integer o : bufferedCC) {
+            MessageWrapper wrapper = null;
+            wrapper = MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, o, 127));
+            Thread.sleep(100);
+            //process(wrapper, "");
+            getService().morph(wrapper, "");
+        }
+        bufferedCC.clear();
     }
 }
