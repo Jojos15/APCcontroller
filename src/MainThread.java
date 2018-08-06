@@ -189,13 +189,13 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                     message.alterCommand(0x90);
                     setLed(false, message, 0, Variables.OFF);
                     toDelete = i;
+                    checkPixels();
                 }
                 i++;
             }
             if (toDelete != 9999) {
                 macroToRelease.remove(toDelete);
             }
-            //checkPixels();
         } else if (shortMessageWrapper.isControlChange()) {
             Keyboard keyboard = new Keyboard();
             if (switchOn && (shortMessageWrapper.getData1() == 54 || shortMessageWrapper.getData1() == 55)) {
@@ -257,6 +257,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
               for(Playback pl : playbacks){
                   if(pl.getCc() == p.getPlaybackCC()){
                       pl.setOn(false);
+                      break;
                   }
               }
               lights[p.getPlaybackCC()] = 0;
@@ -265,6 +266,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                   for(Stop s : stops){
                       if(s.getCc() == p.getPauseCC()){
                           s.setOn(false);
+                          break;
                       }
                   }
                   lights[p.getPauseCC()] = 0;
@@ -275,6 +277,15 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
               for(Playback pl : playbacks){
                   if(pl.getCc() == p.getPlaybackCC()){
                       pl.setOn(true);
+                      break;
+                  }
+              }
+              if(p.isHasPause()){
+                  for(Stop s : stops){
+                      if(s.getCc() == p.getPauseCC()){
+                          s.setOn(true);
+                          break;
+                      }
                   }
               }
               lights[p.getPlaybackCC()] = 3;
