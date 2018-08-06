@@ -23,8 +23,10 @@ public class PlaybackPixel {
     public boolean checkPixelColor(int r, int g, int b) throws AWTException {
         Robot robot = new Robot();
         Color color = robot.getPixelColor(x,y);
-        Color colorToCheck = new Color(r, g, b);
-        return color==colorToCheck;
+        if(color.getBlue()==b&&color.getRed()==r&&color.getGreen()==g){
+            return true;
+        }
+        return false;
     }
 
     public int getPlaybackCC() {

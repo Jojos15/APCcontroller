@@ -1,6 +1,7 @@
 import com.confusionists.mjdjApi.midi.MessageWrapper;
 import com.confusionists.mjdjApi.midi.ShortMessageWrapper;
 import com.confusionists.mjdjApi.morph.DeviceNotFoundException;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;
@@ -61,6 +62,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
             }
             else playbackPixels.add(new PlaybackPixel(Integer.parseInt(Variables.playbacks[i * 2]), Variables.testPixelsX[i], Variables.testPixelsY));
         }
+
         for (int i = 0; i < 98; i++) {
             try {
                 lights[i] = 0;
@@ -86,14 +88,6 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
         try {
             writeLightsToFile();
         } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            Robot robot = new Robot();
-            Color color = robot.getPixelColor(558,479);
-            System.out.println(color.toString());
-        } catch (AWTException e) {
             e.printStackTrace();
         }
     }
@@ -201,7 +195,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
             if (toDelete != 9999) {
                 macroToRelease.remove(toDelete);
             }
-            checkPixels();
+            //checkPixels();
         } else if (shortMessageWrapper.isControlChange()) {
             Keyboard keyboard = new Keyboard();
             if (switchOn && (shortMessageWrapper.getData1() == 54 || shortMessageWrapper.getData1() == 55)) {
@@ -257,6 +251,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
 
     public void checkPixels() throws AWTException, InvalidMidiDataException {
         for(PlaybackPixel p : playbackPixels){
+            getService().log(Boolean.toString(p.checkPixelColor(255,255,255)));
           if(!(p.checkPixelColor(255,255,255))&&lights[p.getPlaybackCC()]>0) {
               getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, p.getPlaybackCC(), 0)));
               for(Playback pl : playbacks){
@@ -275,7 +270,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                   lights[p.getPauseCC()] = 0;
               }
           }
-          if(p.checkPixelColor(255,255,255)&&lights[p.getPlaybackCC()]==0){
+          else if(p.checkPixelColor(255,255,255)&&lights[p.getPlaybackCC()]==0){
               getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, p.getPlaybackCC(), 3)));
               for(Playback pl : playbacks){
                   if(pl.getCc() == p.getPlaybackCC()){
