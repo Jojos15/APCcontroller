@@ -49,8 +49,21 @@ public class BufferThread extends com.confusionists.mjdjApi.morph.AbstractMorph 
                 }
                 return true;
             } else if (bufferModeOn) {
-                bufferedCC.add(shortMessageWrapper.getData1());
                 ledsState[shortMessageWrapper.getData1()] = !ledsState[shortMessageWrapper.getData1()];
+                if(ledsState[shortMessageWrapper.getData1()]) {
+                    bufferedCC.add(shortMessageWrapper.getData1());
+                }
+                else{
+                    if(bufferedCC.size()!=0) {
+                        int position = 0;
+                        for (int i = 0; i < bufferedCC.size(); i++) {
+                            if (bufferedCC.get(i) == shortMessageWrapper.getData1()) {
+                                position = i;
+                            }
+                        }
+                        bufferedCC.remove(position);
+                    }
+                }
                 ShortMessageWrapper messageToSent = shortMessageWrapper;
                 if(ledsState[shortMessageWrapper.getData1()]){
                     messageToSent.alterData2(Variables.YELLOW_FLASH);
@@ -105,8 +118,7 @@ public class BufferThread extends com.confusionists.mjdjApi.morph.AbstractMorph 
         for (Integer o : bufferedCC) {
             MessageWrapper wrapper = null;
             wrapper = MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, o, 127));
-            Thread.sleep(100);
-            //process(wrapper, "");
+            Thread.sleep(10);
             getService().morph(wrapper, "");
         }
         bufferedCC.clear();

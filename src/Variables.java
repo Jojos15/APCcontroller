@@ -80,6 +80,10 @@ public class Variables {
             55, 260
     };
 */
+    public static int testPixelsY = 448; //1366x768
+    public static int testPixelsX[] = { //1366x768
+            317, 414, 511, 608, 705, 802, 899, 1002, 123, 220
+    };
     public static int OFF = 0;
     public static int GREEN = 1;
     public static int GREEN_FLASH = 2;

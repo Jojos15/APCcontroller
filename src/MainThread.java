@@ -4,6 +4,7 @@ import com.confusionists.mjdjApi.morph.DeviceNotFoundException;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -17,6 +18,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
     private ArrayList<Macro> macros = new ArrayList<>();
     private ArrayList<Fader> faders = new ArrayList<>();
     private ArrayList<Integer> macroToRelease = new ArrayList<>();
+    private ArrayList<PlaybackPixel> playbackPixels = new ArrayList<>();
     private int lastFaderCC = 0;
     private boolean switchOn = false;
     private int[] lights = new int[98];
@@ -53,11 +55,30 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                 faders.add(new Fader(Variables.fadersX[i], Variables.fadersX[i + 1], Variables.faders_lower_position));
             }
         }
+        for(int i = 0; i<10; i++){
+            if(i<8) {
+                playbackPixels.add(new PlaybackPixel(Integer.parseInt(Variables.playbacks[i * 2]), Integer.parseInt(Variables.stops[i * 2]), Variables.testPixelsX[i], Variables.testPixelsY));
+            }
+            else playbackPixels.add(new PlaybackPixel(Integer.parseInt(Variables.playbacks[i * 2]), Variables.testPixelsX[i], Variables.testPixelsY));
+        }
         for (int i = 0; i < 98; i++) {
             try {
                 lights[i] = 0;
-                getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i, 0)));
+                getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i, Variables.GREEN)));
+                if(i>0){
+                    getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i-1, Variables.RED)));
+                }
+                if(i>1){
+                    getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i-2, Variables.YELLOW)));
+                }
+                if(i>2){
+                    getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i-3, 0)));
+                }
+
+                Thread.sleep(35);
             } catch (InvalidMidiDataException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
@@ -67,31 +88,14 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        /*try { WOOOOOOOORKS!!!!!!!!!
-            MessageWrapper wrapper = MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, 64, 127));
-            process(wrapper, "");
-        } catch (InvalidMidiDataException e) {
-            e.printStackTrace();
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-        }*/
 
-        /*try {
+        try {
             Robot robot = new Robot();
-            robot.mouseMove(0,0);
-            BufferedImage initCapture = robot.createScreenCapture(new Rectangle(1366,768));
-            *//*JFrame frame = new JFrame();
-            frame.getContentPane().setLayout(new FlowLayout());
-            frame.getContentPane().add(new JLabel(new ImageIcon(initCapture)));
-            frame.pack();
-            frame.setVisible(true);
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // if you want the X button to close the app*//*
-
-
-
+            Color color = robot.getPixelColor(558,479);
+            System.out.println(color.toString());
         } catch (AWTException e) {
             e.printStackTrace();
-        }*/
+        }
     }
 
     @Override
@@ -152,6 +156,9 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                     writeLightsToFile();
                     getService().log("Should be writen to lights txt");
                 }
+                else if (shortMessageWrapper.getData1() == 87){
+                    checkPixels();
+                }
             } else if (shortMessageWrapper.getData1() == 98) {
                 switchOn = !switchOn;
                 ShortMessageWrapper messageToSend = shortMessageWrapper;
@@ -194,6 +201,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
             if (toDelete != 9999) {
                 macroToRelease.remove(toDelete);
             }
+            checkPixels();
         } else if (shortMessageWrapper.isControlChange()) {
             Keyboard keyboard = new Keyboard();
             if (switchOn && (shortMessageWrapper.getData1() == 54 || shortMessageWrapper.getData1() == 55)) {
@@ -245,5 +253,37 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
             fileOutputStream.write(lights[i]);
         }
         fileOutputStream.close();
+    }
+
+    public void checkPixels() throws AWTException, InvalidMidiDataException {
+        for(PlaybackPixel p : playbackPixels){
+          if(!(p.checkPixelColor(255,255,255))&&lights[p.getPlaybackCC()]>0) {
+              getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, p.getPlaybackCC(), 0)));
+              for(Playback pl : playbacks){
+                  if(pl.getCc() == p.getPlaybackCC()){
+                      pl.setOn(false);
+                  }
+              }
+              lights[p.getPlaybackCC()] = 0;
+              if(p.isHasPause()){
+                  getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, p.getPauseCC(), 0)));
+                  for(Stop s : stops){
+                      if(s.getCc() == p.getPauseCC()){
+                          s.setOn(false);
+                      }
+                  }
+                  lights[p.getPauseCC()] = 0;
+              }
+          }
+          if(p.checkPixelColor(255,255,255)&&lights[p.getPlaybackCC()]==0){
+              getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, p.getPlaybackCC(), 3)));
+              for(Playback pl : playbacks){
+                  if(pl.getCc() == p.getPlaybackCC()){
+                      pl.setOn(true);
+                  }
+              }
+              lights[p.getPlaybackCC()] = 3;
+          }
+        }
     }
 }
