@@ -10,6 +10,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
 
@@ -23,6 +26,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
     private int lastFaderCC = 0;
     private boolean switchOn = false;
     private int[] lights = new int[98];
+    private long lastFaderMovement = 0;
 
     @Override
     public String getName() {
@@ -56,14 +60,14 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                 faders.add(new Fader(Variables.fadersX[i], Variables.fadersX[i + 1], Variables.faders_lower_position));
             }
         }
-        for(int i = 0; i<10; i++){
-            if(i<8) {
+        for (int i = 0; i < 10; i++) {
+            if (i < 8) {
                 playbackPixels.add(new PlaybackPixel(Integer.parseInt(Variables.playbacks[i * 2]), Integer.parseInt(Variables.stops[i * 2]), Variables.testPixelsX[i], Variables.testPixelsY));
-            }
-            else playbackPixels.add(new PlaybackPixel(Integer.parseInt(Variables.playbacks[i * 2]), Variables.testPixelsX[i], Variables.testPixelsY));
+            } else
+                playbackPixels.add(new PlaybackPixel(Integer.parseInt(Variables.playbacks[i * 2]), Variables.testPixelsX[i], Variables.testPixelsY));
         }
 
-        for (int i = 0; i < 98; i++) {
+        /*for (int i = 0; i < 98; i++) {
             try {
                 lights[i] = 0;
                 getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i, Variables.GREEN)));
@@ -83,13 +87,68 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
 
         try {
             writeLightsToFile();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        long mi = System.currentTimeMillis();
+        ArrayList<Integer> tempList = new ArrayList<Integer>();
+        ArrayList<Integer> tempList2 = new ArrayList<Integer>();
+        ArrayList<Integer> tempList3 = new ArrayList<Integer>();
+        int white = new Color(255, 255, 255).getRGB();
+        try {
+            Robot robot = new Robot();
+            BufferedImage image = robot.createScreenCapture(new Rectangle(1366, 768));
+            for (int j = 407; j <= 414; j++) {
+                for (int i = 934; i <= 937; i++) {
+                    int color = image.getRGB(i, j);
+                    if (color == white) {
+                        tempList.add(i - 934);
+                        tempList.add(j - 407);
+                    }
+                }
+                for (int i = 940; i <= 943; i++) {
+                    int color = image.getRGB(i, j);
+                    if (color == white) {
+                        tempList2.add(i - 940);
+                        tempList2.add(j - 407);
+                    }
+                }
+                for (int i = 946; i <= 949; i++) {
+                    int color = image.getRGB(i, j);
+                    if (color == white) {
+                        tempList3.add(i - 946);
+                        tempList3.add(j - 407);
+                    }
+                }
+            }
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
+        System.out.println(System.currentTimeMillis() - mi);
+        Integer[] toCheck = new Integer[tempList.size()];
+        toCheck = tempList.toArray(toCheck);
+        Integer[] toCheck2 = new Integer[tempList2.size()];
+        toCheck2 = tempList2.toArray(toCheck2);
+        Integer[] toCheck3 = new Integer[tempList3.size()];
+        toCheck3 = tempList3.toArray(toCheck3);
+        int sum = 0;
+        for (int i = 0; i < 10; i++) {
+            if (Arrays.equals(toCheck, Variables.digitPixelsWhite[i])) {
+                sum+=i*100;
+            }
+            if (Arrays.equals(toCheck2, Variables.digitPixelsWhite[i])) {
+                sum+=i*10;
+            }
+            if (Arrays.equals(toCheck3, Variables.digitPixelsWhite[i])) {
+                sum+=i;
+            }
+        }
+        System.out.println(sum);
+        System.out.println(System.currentTimeMillis() - mi);
     }
 
     @Override
@@ -149,8 +208,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                 } else if (shortMessageWrapper.getData1() == 82) {
                     writeLightsToFile();
                     getService().log("Should be writen to lights txt");
-                }
-                else if (shortMessageWrapper.getData1() == 87){
+                } else if (shortMessageWrapper.getData1() == 87) {
                     checkPixels();
                 }
             } else if (shortMessageWrapper.getData1() == 98) {
@@ -197,6 +255,21 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                 macroToRelease.remove(toDelete);
             }
         } else if (shortMessageWrapper.isControlChange()) {
+            lastFaderMovement = System.currentTimeMillis();
+            Timer timer = new Timer("Timer");
+            TimerTask task = new TimerTask() {
+                @Override
+                public void run() {
+                    if (System.currentTimeMillis() - lastFaderMovement >= 1000) {
+                        try {
+                            Keyboard keyboard = new Keyboard();
+                            keyboard.releaseMouse();
+                        } catch (AWTException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            };
             Keyboard keyboard = new Keyboard();
             if (switchOn && (shortMessageWrapper.getData1() == 54 || shortMessageWrapper.getData1() == 55)) {
                 if (shortMessageWrapper.getData1() == 54) {
@@ -210,6 +283,8 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
             }
 
             lastFaderCC = shortMessageWrapper.getData1();
+
+            timer.schedule(task, 1000);
         }
         return false;
     }
@@ -250,46 +325,45 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
     }
 
     public void checkPixels() throws AWTException, InvalidMidiDataException {
-        for(PlaybackPixel p : playbackPixels){
-            getService().log(Boolean.toString(p.checkPixelColor(255,255,255)));
-          if(!(p.checkPixelColor(255,255,255))&&lights[p.getPlaybackCC()]>0) {
-              getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, p.getPlaybackCC(), 0)));
-              for(Playback pl : playbacks){
-                  if(pl.getCc() == p.getPlaybackCC()){
-                      pl.setOn(false);
-                      break;
-                  }
-              }
-              lights[p.getPlaybackCC()] = 0;
-              if(p.isHasPause()){
-                  getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, p.getPauseCC(), 0)));
-                  for(Stop s : stops){
-                      if(s.getCc() == p.getPauseCC()){
-                          s.setOn(false);
-                          break;
-                      }
-                  }
-                  lights[p.getPauseCC()] = 0;
-              }
-          }
-          else if(p.checkPixelColor(255,255,255)&&lights[p.getPlaybackCC()]==0){
-              getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, p.getPlaybackCC(), 3)));
-              for(Playback pl : playbacks){
-                  if(pl.getCc() == p.getPlaybackCC()){
-                      pl.setOn(true);
-                      break;
-                  }
-              }
-              if(p.isHasPause()){
-                  for(Stop s : stops){
-                      if(s.getCc() == p.getPauseCC()){
-                          s.setOn(true);
-                          break;
-                      }
-                  }
-              }
-              lights[p.getPlaybackCC()] = 3;
-          }
+        for (PlaybackPixel p : playbackPixels) {
+            getService().log(Boolean.toString(p.checkPixelColor(255, 255, 255)));
+            if (!(p.checkPixelColor(255, 255, 255)) && lights[p.getPlaybackCC()] > 0) {
+                getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, p.getPlaybackCC(), 0)));
+                for (Playback pl : playbacks) {
+                    if (pl.getCc() == p.getPlaybackCC()) {
+                        pl.setOn(false);
+                        break;
+                    }
+                }
+                lights[p.getPlaybackCC()] = 0;
+                if (p.isHasPause()) {
+                    getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, p.getPauseCC(), 0)));
+                    for (Stop s : stops) {
+                        if (s.getCc() == p.getPauseCC()) {
+                            s.setOn(false);
+                            break;
+                        }
+                    }
+                    lights[p.getPauseCC()] = 0;
+                }
+            } else if (p.checkPixelColor(255, 255, 255) && lights[p.getPlaybackCC()] == 0) {
+                getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, p.getPlaybackCC(), 3)));
+                for (Playback pl : playbacks) {
+                    if (pl.getCc() == p.getPlaybackCC()) {
+                        pl.setOn(true);
+                        break;
+                    }
+                }
+                if (p.isHasPause()) {
+                    for (Stop s : stops) {
+                        if (s.getCc() == p.getPauseCC()) {
+                            s.setOn(true);
+                            break;
+                        }
+                    }
+                }
+                lights[p.getPlaybackCC()] = 3;
+            }
         }
     }
 }

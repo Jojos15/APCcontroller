@@ -153,7 +153,7 @@ public class Keyboard {
         int newY = 0;
 
         if(lastFaderCC!=shortMessageWrapper.getData1()){
-            robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+            releaseMouse();
         }
         newY = Variables.faders_lower_position - (int)(shortMessageWrapper.getData2()*controlChangePixelRatio);
         robot.mouseMove(x, preY);
@@ -162,6 +162,10 @@ public class Keyboard {
 
 
         return newY;
+    }
+
+    public void releaseMouse(){
+        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
 
 }
