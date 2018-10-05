@@ -27,7 +27,25 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
     private int lastFaderCC = 0;
     private boolean switchOn = false;
     private int[] lights = new int[98];
-    private long lastFaderMovement = 0;
+    private long lastFaderMovement = System.currentTimeMillis();
+    private boolean entered = false;
+
+    private Timer timer = new Timer("Timer");
+    private TimerTask task = new TimerTask() {
+        @Override
+        public void run() {
+            if (System.currentTimeMillis() - lastFaderMovement >= 500 && entered) {
+                try {
+                    Keyboard keyboard = new Keyboard();
+                    keyboard.releaseMouse();
+                    entered = false;
+                } catch (AWTException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    };
+
 
     @Override
     public String getName() {
@@ -35,7 +53,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
     }
 
     @Override
-    public void init() throws DeviceNotFoundException {
+    public void init() {
 
 
         for (int i = 0; i < Variables.playbacks.length; i += 2) {
@@ -72,20 +90,18 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
             try {
                 lights[i] = 0;
                 getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i, Variables.GREEN)));
-                if(i>0){
-                    getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i-1, Variables.RED)));
+                if (i > 0) {
+                    getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i - 1, Variables.RED)));
                 }
-                if(i>1){
-                    getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i-2, Variables.YELLOW)));
+                if (i > 1) {
+                    getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i - 2, Variables.YELLOW)));
                 }
-                if(i>2){
-                    getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i-3, 0)));
+                if (i > 2) {
+                    getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i - 3, 0)));
                 }
 
                 Thread.sleep(35);
-            } catch (InvalidMidiDataException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
+            } catch (InvalidMidiDataException | InterruptedException e) {
                 e.printStackTrace();
             }
         }
@@ -95,10 +111,12 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        GlobalTap globalTap = new GlobalTap(this);
+        //GLOBAL TAP START
+        /*GlobalTap globalTap = new GlobalTap(this);
         Thread thread = new Thread(globalTap);
-        thread.start();
+        thread.start();*/
+
+        timer.schedule(task, 0, 200);
     }
 
     @Override
@@ -205,22 +223,8 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                 macroToRelease.remove(toDelete);
             }
         } else if (shortMessageWrapper.isControlChange()) {
-            lastFaderMovement = System.currentTimeMillis();
-            /*Timer timer = new Timer("Timer");
-            TimerTask task = new TimerTask() {
-                @Override
-                public void run() {
-                    if (System.currentTimeMillis() - lastFaderMovement >= 1000) {
-                        try {
-                            Keyboard keyboard = new Keyboard();
-                            keyboard.releaseMouse();
-                        } catch (AWTException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            };*/
             Keyboard keyboard = new Keyboard();
+            lastFaderMovement = System.currentTimeMillis();
             if (switchOn && (shortMessageWrapper.getData1() == 54 || shortMessageWrapper.getData1() == 55)) {
                 if (shortMessageWrapper.getData1() == 54) {
                     faders.get(9).setPreY(keyboard.moveFader(faders.get(9).getX(), faders.get(9).getPreY(), shortMessageWrapper, lastFaderCC));
@@ -231,10 +235,9 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                 int position = (shortMessageWrapper.getData1() + Variables.faders_offset) % 10;
                 faders.get(position).setPreY(keyboard.moveFader(faders.get(position).getX(), faders.get(position).getPreY(), shortMessageWrapper, lastFaderCC));
             }
-
+            entered = true;
             lastFaderCC = shortMessageWrapper.getData1();
 
-            //timer.schedule(task, 1000);
         }
         return false;
     }

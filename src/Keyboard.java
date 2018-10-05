@@ -154,12 +154,10 @@ public class Keyboard {
     }
 
     public int moveFader(int x, int preY, ShortMessageWrapper shortMessageWrapper, int lastFaderCC){
-        long mills = System.currentTimeMillis();
         int newY = 0;
         //BufferedImage image = robot.createScreenCapture(new Rectangle(1366, 768));
         //int imageColor = image.getRGB(x, preY);
 
-        //System.out.println(System.currentTimeMillis() - mills);
 
         if(lastFaderCC!=shortMessageWrapper.getData1()){
             releaseMouse();
@@ -183,14 +181,16 @@ public class Keyboard {
                 up++;
             }
         }*/
-        //System.out.println(System.currentTimeMillis() - mills);
-        if(shortMessageWrapper.getData2()!=0) {
-            newY = Variables.faders_lower_position - (int) ceil(shortMessageWrapper.getData2() * controlChangePixelRatio);
-        }
-        else newY = Variables.faders_lower_position;
         robot.mouseMove(x, preY);
         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-        robot.mouseMove(x, newY);
+        if(shortMessageWrapper.getData2()!=0) {
+            newY = Variables.faders_lower_position - (int) ceil(shortMessageWrapper.getData2() * controlChangePixelRatio);
+            robot.mouseMove(x, newY);
+        }
+        else {
+            newY = Variables.faders_lower_position;
+            robot.mouseMove(x, Variables.resolutionY);
+        }
 
 
         return newY;

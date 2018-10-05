@@ -1,4 +1,3 @@
-import javax.naming.Context;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
