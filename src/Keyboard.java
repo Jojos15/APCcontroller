@@ -3,15 +3,19 @@ import com.confusionists.mjdjApi.midi.ShortMessageWrapper;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 
 import static java.awt.event.KeyEvent.*;
 import static java.lang.Math.abs;
+import static java.lang.Math.ceil;
 import static java.lang.Math.getExponent;
 
 public class Keyboard {
 
     private Robot robot;
-    double controlChangePixelRatio;
+    private double controlChangePixelRatio;
+    private int faderMidColor = new Color(0x737373).getRGB();
+
 
 
     public Keyboard() throws AWTException {
@@ -150,12 +154,40 @@ public class Keyboard {
     }
 
     public int moveFader(int x, int preY, ShortMessageWrapper shortMessageWrapper, int lastFaderCC){
+        long mills = System.currentTimeMillis();
         int newY = 0;
+        //BufferedImage image = robot.createScreenCapture(new Rectangle(1366, 768));
+        //int imageColor = image.getRGB(x, preY);
+
+        //System.out.println(System.currentTimeMillis() - mills);
 
         if(lastFaderCC!=shortMessageWrapper.getData1()){
             releaseMouse();
         }
-        newY = Variables.faders_lower_position - (int)(shortMessageWrapper.getData2()*controlChangePixelRatio);
+
+        /*if(!(faderMidColor == imageColor)){
+
+            int up = 1;
+            int down = 1;
+
+            while(preY + up <= Variables.faders_lower_position && preY-down >= Variables.faders_higher_position){
+                if (image.getRGB(x, preY + up) == faderMidColor){
+                    preY = preY + up;
+                    break;
+                }
+                if (image.getRGB(x, preY - down) == faderMidColor){
+                    preY = preY - down;
+                    break;
+                }
+                down--;
+                up++;
+            }
+        }*/
+        //System.out.println(System.currentTimeMillis() - mills);
+        if(shortMessageWrapper.getData2()!=0) {
+            newY = Variables.faders_lower_position - (int) ceil(shortMessageWrapper.getData2() * controlChangePixelRatio);
+        }
+        else newY = Variables.faders_lower_position;
         robot.mouseMove(x, preY);
         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
         robot.mouseMove(x, newY);

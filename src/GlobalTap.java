@@ -8,7 +8,7 @@ public class GlobalTap implements Runnable {
 
     MainThread mainThread;
 
-    public GlobalTap(MainThread mainThread){
+    public GlobalTap(MainThread mainThread) {
         this.mainThread = mainThread;
     }
 
@@ -56,13 +56,13 @@ public class GlobalTap implements Runnable {
         int sum = 0;
         for (int i = 0; i < 10; i++) {
             if (Arrays.equals(toCheck, Variables.digitPixelsWhite[i])) {
-                sum+=i*100;
+                sum += i * 100;
             }
             if (Arrays.equals(toCheck2, Variables.digitPixelsWhite[i])) {
-                sum+=i*10;
+                sum += i * 10;
             }
             if (Arrays.equals(toCheck3, Variables.digitPixelsWhite[i])) {
-                sum+=i;
+                sum += i;
             }
         }
         mainThread.getService().log(Integer.toString(sum));

@@ -26,7 +26,7 @@ public class Variables {
             "7", ";"
     };
     public static int taps_offset = 2;
-    public static  String[] taps = {
+    public static String[] taps = {
             "8", "3",
             "9", "4",
             "10", "5",
@@ -48,11 +48,10 @@ public class Variables {
             "62", "u", "TRUE",
             "63", "i", "TRUE"
     };
-    public static int faders_lower_position = 685; //  1366x768
-    public static int faders_higher_position = 590; //
-//    public static int faders_lower_position = 816; // 1600x900
-//    public static int faders_higher_position = 725; //
+
     public static int faders_offset = 2;
+    public static int faders_lower_position = 685; //  1366x768
+    public static int faders_higher_position = 593; //
     public static int fadersX[] = {  //1366x768
             48, 321,
             49, 418,
@@ -66,7 +65,9 @@ public class Variables {
             54, 127,
             55, 224
     };
-    /*public static int fadersX[] = { //1600x900
+    /*public static int faders_lower_position = 816; // 1600x900
+    public static int faders_higher_position = 725; //
+    public static int fadersX[] = { //1600x900
             48, 380,
             49, 500,
             50, 620,
@@ -78,34 +79,38 @@ public class Variables {
             56, 20,
             54, 140,
             55, 260
-    };
-*/
+    };*/
     public static int testPixelsY = 448; //1366x768
     public static int testPixelsX[] = { //1366x768
             317, 414, 511, 608, 705, 802, 899, 1002, 123, 220
     };
 
+    /*public static int testPixelsY = 580; // 1600x900
+    public static int testPixelsX[] = { //1600x900
+            363, 483, 603, 723, 843, 963, 1083, 1203, 123, 243
+    };*/
+
     public static Integer digitPixelsWhite[][] = { //1366x768
             //0
-            {1,0, 1,7},
+            {1, 0, 1, 7},
             //1
-            {1,1, 1,7, 2,7, 3,7},
+            {1, 1, 1, 7, 2, 7, 3, 7},
             //2
-            {1,0, 2,0, 0,7, 1,7, 2,7, 3,7},
+            {1, 0, 2, 0, 0, 7, 1, 7, 2, 7, 3, 7},
             //3
-            {1,0, 2,0, 0,7, 1,7, 2,7},
+            {1, 0, 2, 0, 0, 7, 1, 7, 2, 7},
             //4
-            {0,4, 1,4, 2,4, 3,4},
+            {0, 4, 1, 4, 2, 4, 3, 4},
             //5
-            {1,0, 2,0, 1,3, 2,3, 1,7, 2,7},
+            {1, 0, 2, 0, 1, 3, 2, 3, 1, 7, 2, 7},
             //6
-            {1,0, 2,0, 0,3, 1,3, 2,3, 1,7},
+            {1, 0, 2, 0, 0, 3, 1, 3, 2, 3, 1, 7},
             //7
-            {0,0, 1,0, 2,0, 3,0},
+            {0, 0, 1, 0, 2, 0, 3, 0},
             //8
-            {1,0, 1,3, 1,7},
+            {1, 0, 1, 3, 1, 7},
             //9
-            {1,0, 1,4, 2,4, 0,7, 1,7}
+            {1, 0, 1, 4, 2, 4, 0, 7, 1, 7}
     };
     public static int OFF = 0;
     public static int GREEN = 1;
@@ -114,8 +119,6 @@ public class Variables {
     public static int RED_FLASH = 4;
     public static int YELLOW = 5;
     public static int YELLOW_FLASH = 6;
-
-
 
 
 }

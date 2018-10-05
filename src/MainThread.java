@@ -68,7 +68,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                 playbackPixels.add(new PlaybackPixel(Integer.parseInt(Variables.playbacks[i * 2]), Variables.testPixelsX[i], Variables.testPixelsY));
         }
         // Starting Animation
-        /*for (int i = 0; i < 98; i++) {
+        for (int i = 0; i < 98; i++) {
             try {
                 lights[i] = 0;
                 getService().send(MessageWrapper.newInstance(new ShortMessage(ShortMessage.NOTE_ON, 0, i, Variables.GREEN)));
@@ -88,7 +88,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }*/
+        }
 
         try {
             writeLightsToFile();
@@ -206,7 +206,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
             }
         } else if (shortMessageWrapper.isControlChange()) {
             lastFaderMovement = System.currentTimeMillis();
-            Timer timer = new Timer("Timer");
+            /*Timer timer = new Timer("Timer");
             TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
@@ -219,7 +219,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                         }
                     }
                 }
-            };
+            };*/
             Keyboard keyboard = new Keyboard();
             if (switchOn && (shortMessageWrapper.getData1() == 54 || shortMessageWrapper.getData1() == 55)) {
                 if (shortMessageWrapper.getData1() == 54) {
@@ -234,7 +234,7 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
 
             lastFaderCC = shortMessageWrapper.getData1();
 
-            timer.schedule(task, 1000);
+            //timer.schedule(task, 1000);
         }
         return false;
     }
