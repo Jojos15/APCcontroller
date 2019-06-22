@@ -155,6 +155,7 @@ public class Keyboard {
         int newY = 0;
         //BufferedImage image = robot.createScreenCapture(new Rectangle(1366, 768));
         //int imageColor = image.getRGB(x, preY);
+        //Git Comment
 
 
         if(lastFaderCCb){
