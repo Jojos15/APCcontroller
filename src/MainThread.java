@@ -29,7 +29,10 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
     private int[] lights = new int[98];
     private long lastFaderMovement = System.currentTimeMillis();
     private boolean entered = false;
+    private boolean lastFaderCCb = false;
 
+    public boolean mouseDown = true;
+    public boolean sameMouse = false;
     private Timer timer = new Timer("Timer");
     private TimerTask task = new TimerTask() {
         @Override
@@ -39,6 +42,8 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
                     Keyboard keyboard = new Keyboard();
                     keyboard.releaseMouse();
                     entered = false;
+                    mouseDown = true;
+                    sameMouse = true;
                 } catch (AWTException e) {
                     e.printStackTrace();
                 }
@@ -225,15 +230,27 @@ public class MainThread extends com.confusionists.mjdjApi.morph.AbstractMorph {
         } else if (shortMessageWrapper.isControlChange()) {
             Keyboard keyboard = new Keyboard();
             lastFaderMovement = System.currentTimeMillis();
+            lastFaderCCb = false;
+
+            if(lastFaderCC != shortMessageWrapper.getData1()){
+                mouseDown = true;
+                lastFaderCCb = true;
+            }
+            else if(sameMouse){
+                sameMouse = false;
+                mouseDown = true;
+            }
+            else mouseDown = false;
+
             if (switchOn && (shortMessageWrapper.getData1() == 54 || shortMessageWrapper.getData1() == 55)) {
                 if (shortMessageWrapper.getData1() == 54) {
-                    faders.get(9).setPreY(keyboard.moveFader(faders.get(9).getX(), faders.get(9).getPreY(), shortMessageWrapper, lastFaderCC));
+                    faders.get(9).setPreY(keyboard.moveFader(faders.get(9).getX(), faders.get(9).getPreY(), shortMessageWrapper, lastFaderCCb,mouseDown));
                 } else {
-                    faders.get(10).setPreY(keyboard.moveFader(faders.get(10).getX(), faders.get(10).getPreY(), shortMessageWrapper, lastFaderCC));
+                    faders.get(10).setPreY(keyboard.moveFader(faders.get(10).getX(), faders.get(10).getPreY(), shortMessageWrapper, lastFaderCCb,mouseDown));
                 }
             } else {
                 int position = (shortMessageWrapper.getData1() + Variables.faders_offset) % 10;
-                faders.get(position).setPreY(keyboard.moveFader(faders.get(position).getX(), faders.get(position).getPreY(), shortMessageWrapper, lastFaderCC));
+                faders.get(position).setPreY(keyboard.moveFader(faders.get(position).getX(), faders.get(position).getPreY(), shortMessageWrapper, lastFaderCCb, mouseDown));
             }
             entered = true;
             lastFaderCC = shortMessageWrapper.getData1();

@@ -6,15 +6,13 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 
 import static java.awt.event.KeyEvent.*;
-import static java.lang.Math.abs;
-import static java.lang.Math.ceil;
-import static java.lang.Math.getExponent;
+import static java.lang.Math.*;
 
 public class Keyboard {
 
     private Robot robot;
     private double controlChangePixelRatio;
-    private int faderMidColor = new Color(0x737373).getRGB();
+    //private int faderMidColor = new Color(0x737373).getRGB();
 
 
 
@@ -153,13 +151,13 @@ public class Keyboard {
         robot.keyRelease(keyCodes[offset]);
     }
 
-    public int moveFader(int x, int preY, ShortMessageWrapper shortMessageWrapper, int lastFaderCC){
+    public int moveFader(int x, int preY, ShortMessageWrapper shortMessageWrapper, boolean lastFaderCCb, boolean mouseDown){
         int newY = 0;
         //BufferedImage image = robot.createScreenCapture(new Rectangle(1366, 768));
         //int imageColor = image.getRGB(x, preY);
 
 
-        if(lastFaderCC!=shortMessageWrapper.getData1()){
+        if(lastFaderCCb){
             releaseMouse();
         }
 
@@ -181,23 +179,26 @@ public class Keyboard {
                 up++;
             }
         }*/
+
         robot.mouseMove(x, preY);
-        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        if(mouseDown) {
+            robot.mousePress(InputEvent.BUTTON1_MASK);
+        }
         if(shortMessageWrapper.getData2()!=0) {
-            newY = Variables.faders_lower_position - (int) ceil(shortMessageWrapper.getData2() * controlChangePixelRatio);
+            newY = Variables.faders_lower_position - (int) round(shortMessageWrapper.getData2() * controlChangePixelRatio);
             robot.mouseMove(x, newY);
         }
         else {
             newY = Variables.faders_lower_position;
-            robot.mouseMove(x, Variables.resolutionY);
+            robot.mouseMove(x, Variables.faders_lower_position + 15);
         }
-
-
+        //System.out.println(newY);
         return newY;
     }
 
     public void releaseMouse(){
-        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+        robot.mouseRelease(InputEvent.BUTTON1_MASK);
+        //System.out.println("UP");
     }
 
 }

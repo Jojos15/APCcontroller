@@ -51,8 +51,8 @@ public class Variables {
 
     public static int faders_offset = 2;
     public static int resolutionY = 768;
-    public static int faders_lower_position = 685; //  1366x768
-    public static int faders_higher_position = 593; //
+    public static int faders_lower_position = 683; //  1366x768
+    public static int faders_higher_position = 604; //
     public static int fadersX[] = {  //1366x768
             48, 321,
             49, 418,
